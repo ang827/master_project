@@ -7,7 +7,7 @@ onMounted(() => {
   const map = L.map('map').setView([39.9042, 116.4074], 13)
 
   map.on('click', (event) => {
-    L.marker(event.latlng).addTo(map)
+    L.marker(event.latlng).addTo(map).bindPopup('Tactile paving issue')
   })
 
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
