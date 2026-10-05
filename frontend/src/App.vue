@@ -9,6 +9,16 @@ const selectedProblemType = ref(null)
 let temporaryMarker = null
 let map = null
 
+function submitreport() {
+  if (!selectedlocation.value) {
+    return
+  }
+  L.marker(selectedlocation.value).addTo(map).bindPopup(selectedProblemType.value)
+  map.removeLayer(temporaryMarker)
+  temporaryMarker = null
+  selectedlocation.value = null
+}
+
 onMounted(() => {
   map = L.map('map').setView([39.9042, 116.4074], 13)
 
