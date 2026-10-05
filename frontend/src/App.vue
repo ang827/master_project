@@ -6,11 +6,18 @@ import { ref } from 'vue'
 
 const selectedlocation = ref(null)
 const selectedProblemType = ref(null)
+let temporaryMarker = null
+let map = null
+
 onMounted(() => {
-  const map = L.map('map').setView([39.9042, 116.4074], 13)
+  map = L.map('map').setView([39.9042, 116.4074], 13)
 
   map.on('click', (event) => {
-    L.marker(event.latlng).addTo(map).bindPopup(selectedProblemType.value)
+    if (temporaryMarker === null) {
+      temporaryMarker = L.marker(event.latlng).addTo(map)
+    } else {
+      temporaryMarker.setLatLng(event.latlng)
+    }
     selectedlocation.value = event.latlng
   })
 
@@ -20,6 +27,7 @@ onMounted(() => {
 
 <template>
   <div id="map"></div>
+
   <div v-if="selectedlocation" class="report-panel">
     <h3>Report Tactile Paving Issue</h3>
     <p>latitude: {{ selectedlocation.lat }}</p>
@@ -30,6 +38,7 @@ onMounted(() => {
       <option>Blocked tactile paving</option>
       <option>Missing</option>
     </select>
+    <button @click="submitreport" submit>Submit Report</button>
   </div>
 </template>
 
