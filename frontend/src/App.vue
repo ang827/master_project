@@ -9,14 +9,24 @@ const selectedProblemType = ref(null)
 let temporaryMarker = null
 let map = null
 const description = ref('')
+const reports = ref([])
 
 function submitreport() {
   if (!selectedlocation.value) {
     return
   }
-  L.marker(selectedlocation.value)
+  const newReport = {
+    id: reports.value.length + 1,
+    lat: selectedlocation.value.lat,
+    lng: selectedProblemType.value.lng,
+    type: selectedProblemType.value,
+    description: description.value,
+  }
+  reports.value.push(newReport)
+  console.log(reports.value)
+  L.marker([selectedlocation.value.lat, selectedlocation.value.lng])
     .addTo(map)
-    .bindPopup(`<strong> ${selectedProblemType.value}</strong><br>${description.value}`)
+    .bindPopup(`<strong> ${newReport.type}</strong><br>${newReport.description}`)
   map.removeLayer(temporaryMarker)
   temporaryMarker = null
   selectedlocation.value = null
