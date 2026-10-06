@@ -3,13 +3,19 @@ import { onMounted } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { ref } from 'vue'
-
+import { useStorage } from '@vueuse/core'
 const selectedlocation = ref(null)
 const selectedProblemType = ref(null)
 let temporaryMarker = null
 let map = null
 const description = ref('')
-const reports = ref([])
+const reports = useStorage('tactilepavingreports', [])
+
+function addreportmarker(report) {
+  L.marker([report.lat, report.lng])
+    .addTo(map)
+    .bindPopup(`<strong>${report.type}</strong><br>${report.description}`)
+}
 
 function submitreport() {
   if (!selectedlocation.value) {
@@ -18,15 +24,14 @@ function submitreport() {
   const newReport = {
     id: reports.value.length + 1,
     lat: selectedlocation.value.lat,
-    lng: selectedProblemType.value.lng,
+    lng: selectedlocation.value.lng,
     type: selectedProblemType.value,
     description: description.value,
   }
   reports.value.push(newReport)
+  addreportmarker(newReport)
   console.log(reports.value)
-  L.marker([selectedlocation.value.lat, selectedlocation.value.lng])
-    .addTo(map)
-    .bindPopup(`<strong> ${newReport.type}</strong><br>${newReport.description}`)
+
   map.removeLayer(temporaryMarker)
   temporaryMarker = null
   selectedlocation.value = null
@@ -42,7 +47,10 @@ function cancelreport() {
 }
 onMounted(() => {
   map = L.map('map').setView([39.9042, 116.4074], 13)
-
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
+  reports.value.forEach((report) => {
+    addreportmarker(report)
+  })
   map.on('click', (event) => {
     if (temporaryMarker === null) {
       temporaryMarker = L.marker(event.latlng).addTo(map)
@@ -51,8 +59,6 @@ onMounted(() => {
     }
     selectedlocation.value = event.latlng
   })
-
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
 })
 </script>
 
