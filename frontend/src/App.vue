@@ -8,17 +8,28 @@ const selectedlocation = ref(null)
 const selectedProblemType = ref(null)
 let temporaryMarker = null
 let map = null
+const description = ref('')
 
 function submitreport() {
   if (!selectedlocation.value) {
     return
   }
-  L.marker(selectedlocation.value).addTo(map).bindPopup(selectedProblemType.value)
+  L.marker(selectedlocation.value)
+    .addTo(map)
+    .bindPopup(`<strong> ${selectedProblemType.value}</strong><br>${description.value}`)
   map.removeLayer(temporaryMarker)
   temporaryMarker = null
   selectedlocation.value = null
 }
 
+function cancelreport() {
+  if (temporaryMarker) {
+    map.removeLayer(temporaryMarker)
+    temporaryMarker = null
+  }
+  selectedlocation.value = null
+  description.value = ''
+}
 onMounted(() => {
   map = L.map('map').setView([39.9042, 116.4074], 13)
 
@@ -48,6 +59,13 @@ onMounted(() => {
       <option>Blocked tactile paving</option>
       <option>Missing</option>
     </select>
+    <button type="button" @click="cancelreport">Cancel</button>
+    <label for="description">description:</label>
+    <textarea
+      id="description"
+      v-model="description"
+      placeholder="Please provide a brief description of the issue"
+    ></textarea>
     <button @click="submitreport" submit>Submit Report</button>
   </div>
 </template>
