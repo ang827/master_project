@@ -27,6 +27,7 @@ function submitreport() {
     lng: selectedlocation.value.lng,
     type: selectedProblemType.value,
     description: description.value,
+    createdAt: new Date().toISOString(),
   }
   reports.value.push(newReport)
   addreportmarker(newReport)
