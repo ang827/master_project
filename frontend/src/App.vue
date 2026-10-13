@@ -16,11 +16,25 @@ const { data: serverReports, execute: fetchReports } = useFetch('/api/reports', 
   .json()
 
 function addreportmarker(report) {
-  L.marker([report.lat, report.lng])
+  L.marker([report.latitude, report.longitude])
     .addTo(map)
     .bindPopup(`<strong>${report.type}</strong><br>${report.description}`)
 }
 
+//增添定位函数
+function useCurrentLocation() {
+  navigator.geolocation.getCurrentPosition((position) => {
+    const location = L.latLng(position.coords.latitude, position.coords.longitude)
+    map.setView(location, 17)
+
+    if (temporaryMarker === null) {
+      temporaryMarker = L.marker(location).addTo(map)
+    } else {
+      temporaryMarker.setLatLng(location)
+    }
+    selectedlocation.value = location
+  })
+}
 async function submitreport() {
   //更改为向Django后端发送报告数据
   if (!selectedlocation.value) {
@@ -45,13 +59,7 @@ async function submitreport() {
     }
 
     const savedReport = await response.json()
-    addreportmarker({
-      id: savedReport.id,
-      lat: savedReport.latitude,
-      lng: savedReport.longitude,
-      type: savedReport.type,
-      description: savedReport.description,
-    })
+    addreportmarker(savedReport)
 
     map.removeLayer(temporaryMarker)
     temporaryMarker = null
@@ -93,6 +101,8 @@ onMounted(async () => {
 <template>
   <div id="map"></div>
 
+  <button type="button" @click="useCurrentLocation">Use My Location</button>
+
   <div v-if="selectedlocation" class="report-panel">
     <h3>Report Tactile Paving Issue</h3>
     <p>latitude: {{ selectedlocation.lat }}</p>
@@ -132,6 +142,19 @@ onMounted(async () => {
   border: 1px solid #ccc;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+}
+
+.location-button {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  padding: 8px 12px;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .report-panel h3,
