@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import { ref } from 'vue'
 import { useFetch } from '@vueuse/core'
 const selectedlocation = ref(null)
+const selectedReport = ref(null)
 const selectedProblemType = ref(null)
 let temporaryMarker = null
 let map = null
@@ -16,9 +17,13 @@ const { data: serverReports, execute: fetchReports } = useFetch('/api/reports', 
   .json()
 
 function addreportmarker(report) {
-  L.marker([report.latitude, report.longitude])
+  L.marker([report.latitude, report.longitude], {
+    title: 'Report:${report.type}',
+  })
     .addTo(map)
-    .bindPopup(`<strong>${report.type}</strong><br>${report.description}`)
+    .on('click', () => {
+      selectedReport.value = report
+    })
 }
 
 //增添定位函数
@@ -88,6 +93,7 @@ onMounted(async () => {
   })
 
   map.on('click', (event) => {
+    selectedReport.value = null
     if (temporaryMarker === null) {
       temporaryMarker = L.marker(event.latlng).addTo(map)
     } else {
@@ -100,10 +106,18 @@ onMounted(async () => {
 
 <template>
   <div id="map"></div>
+  <section v-if="selectedReport" class="report-detail" aria-label="report detail title">
+    <h3 id="report-detail-title">Report Details</h3>
+    <p>peoblem type: {{ selectedReport.type }}</p>
+    <p>description: {{ selectedReport.description }}</p>
+    <p>reported at: {{ new Date(selectedReport.createdAt).toLocaleString() }}</p>
+    <p>location: {{ selectedReport.latitude }}, {{ selectedReport.longitude }}</p>
+    <button type="button" @click="selectedReport = null">Close</button>
+  </section>
 
   <button type="button" @click="useCurrentLocation">Use My Location</button>
 
-  <div v-if="selectedlocation" class="report-panel">
+  <div v-if="selectedlocation && !selectedReport" class="report-panel">
     <h3>Report Tactile Paving Issue</h3>
     <p>latitude: {{ selectedlocation.lat }}</p>
     <p>longitude: {{ selectedlocation.lng }}</p>
