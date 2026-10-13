@@ -3,7 +3,7 @@ import { onMounted } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { ref } from 'vue'
-import { useStorage } from '@vueuse/core'
+import { useStorage, useFetch } from '@vueuse/core'
 const selectedlocation = ref(null)
 const selectedProblemType = ref(null)
 let temporaryMarker = null
@@ -12,7 +12,7 @@ const description = ref('')
 const reports = useStorage('tactilepavingreports', [])
 
 function addreportmarker(report) {
-  L.marker([report.lat, report.lng])
+  L.marker([report.latitude, report.longitude])
     .addTo(map)
     .bindPopup(`<strong>${report.type}</strong><br>${report.description}`)
 }
@@ -23,8 +23,8 @@ function submitreport() {
   }
   const newReport = {
     id: reports.value.length + 1,
-    lat: selectedlocation.value.lat,
-    lng: selectedlocation.value.lng,
+    latitude: selectedlocation.value.lat,
+    longitude: selectedlocation.value.lng,
     type: selectedProblemType.value,
     description: description.value,
     createdAt: new Date().toISOString(),
@@ -46,10 +46,12 @@ function cancelreport() {
   selectedlocation.value = null
   description.value = ''
 }
-onMounted(() => {
+onMounted(async () => {
   map = L.map('map').setView([39.9042, 116.4074], 13)
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
-  reports.value.forEach((report) => {
+  //从读取localstorge的报告改为从后端获取报告
+  await fetchReports()
+  serverReports.value.forEach((report) => {
     addreportmarker(report)
   })
   map.on('click', (event) => {
