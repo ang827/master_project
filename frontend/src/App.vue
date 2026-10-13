@@ -144,7 +144,8 @@ onMounted(async () => {
   width: 100%;
 }
 
-.report-panel {
+.report-panel,
+.report-detail {
   position: fixed;
   top: 16px;
   left: 50%;
