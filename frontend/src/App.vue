@@ -3,39 +3,63 @@ import { onMounted } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { ref } from 'vue'
-import { useStorage, useFetch } from '@vueuse/core'
+import { useFetch } from '@vueuse/core'
 const selectedlocation = ref(null)
 const selectedProblemType = ref(null)
 let temporaryMarker = null
 let map = null
 const description = ref('')
-const reports = useStorage('tactilepavingreports', [])
+const { data: serverReports, execute: fetchReports } = useFetch('/api/reports', {
+  immediate: false,
+})
+  .get()
+  .json()
 
 function addreportmarker(report) {
-  L.marker([report.latitude, report.longitude])
+  L.marker([report.lat, report.lng])
     .addTo(map)
     .bindPopup(`<strong>${report.type}</strong><br>${report.description}`)
 }
 
-function submitreport() {
+async function submitreport() {
+  //更改为向Django后端发送报告数据
   if (!selectedlocation.value) {
     return
   }
-  const newReport = {
-    id: reports.value.length + 1,
-    latitude: selectedlocation.value.lat,
-    longitude: selectedlocation.value.lng,
-    type: selectedProblemType.value,
-    description: description.value,
-    createdAt: new Date().toISOString(),
-  }
-  reports.value.push(newReport)
-  addreportmarker(newReport)
-  console.log(reports.value)
+  try {
+    const response = await fetch('/api/reports/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        latitude: selectedlocation.value.lat,
+        longitude: selectedlocation.value.lng,
+        type: selectedProblemType.value,
+        description: description.value,
+      }),
+    })
 
-  map.removeLayer(temporaryMarker)
-  temporaryMarker = null
-  selectedlocation.value = null
+    if (!response.ok) {
+      throw new Error(`Failed to submit report: ${response.status}`)
+    }
+
+    const savedReport = await response.json()
+    addreportmarker({
+      id: savedReport.id,
+      lat: savedReport.latitude,
+      lng: savedReport.longitude,
+      type: savedReport.type,
+      description: savedReport.description,
+    })
+
+    map.removeLayer(temporaryMarker)
+    temporaryMarker = null
+    selectedlocation.value = null
+    description.value = ''
+  } catch (error) {
+    console.error('Failed to submit report:', error)
+  }
 }
 
 function cancelreport() {
@@ -54,6 +78,7 @@ onMounted(async () => {
   serverReports.value.forEach((report) => {
     addreportmarker(report)
   })
+
   map.on('click', (event) => {
     if (temporaryMarker === null) {
       temporaryMarker = L.marker(event.latlng).addTo(map)
