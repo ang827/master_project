@@ -8,7 +8,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 export default defineConfig({
   plugins: [vue(), vueDevTools()],
   server: {
-    //临时测试，转发服务器到8000端口
+    // Temporary testing: proxy requests to port 8000
     proxy: {
       '/api': {
         target: 'http://localhost:8000',

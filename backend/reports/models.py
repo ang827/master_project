@@ -2,7 +2,7 @@ from django.db import models
 
 from django.db import models
 
-class Report(models.Model):  #建立report的数据表
+class Report(models.Model):  # Define the report data table
     latitude = models.FloatField()
     longitude = models.FloatField()
     type = models.CharField(max_length=100)

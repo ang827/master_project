@@ -30,7 +30,7 @@ function addreportmarker(report) {
     })
 }
 
-//增添定位函数
+// Add the location function
 function useCurrentLocation() {
   navigator.geolocation.getCurrentPosition((position) => {
     const location = L.latLng(position.coords.latitude, position.coords.longitude)
@@ -45,7 +45,7 @@ function useCurrentLocation() {
   })
 }
 async function submitreport() {
-  //更改为向Django后端发送报告数据
+  // Change to send report data to the Django backend
   if (!selectedlocation.value) {
     return
   }
@@ -93,7 +93,7 @@ function cancelreport() {
 onMounted(async () => {
   map = L.map('map').setView([39.9042, 116.4074], 13)
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
-  //从读取localstorge的报告改为从后端获取报告
+  // Changed from reading reports from localStorage to fetching them from the backend
   await fetchReports()
   serverReports.value.forEach((report) => {
     addreportmarker(report)
@@ -122,7 +122,7 @@ onMounted(async () => {
     <button type="button" @click="selectedReport = null">Close</button>
   </section>
 
-  <button type="button" @click="useCurrentLocation">Use My Location</button>
+  <button class="location-button" type="button" @click="useCurrentLocation">Use My Location</button>
 
   <div v-if="selectedlocation && !selectedReport" class="report-panel">
     <h3>Report Tactile Paving Issue</h3>
@@ -168,15 +168,20 @@ onMounted(async () => {
 
 .location-button {
   position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 1000;
-  padding: 8px 12px;
+  bottom: 16px;
+  left: 16px;
+  z-index: 1100;
+  padding: 10px 14px;
   color: #fff;
   background-color: #007bff;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+}
+
+.location-button:hover {
+  background-color: #0056b3;
 }
 
 .report-panel h3,
