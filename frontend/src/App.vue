@@ -4,15 +4,19 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { ref } from 'vue'
 import { useFetch } from '@vueuse/core'
+
 const selectedlocation = ref(null)
 const selectedReport = ref(null)
 const selectedProblemType = ref(null)
 let temporaryMarker = null
 let map = null
 const description = ref('')
-const { data: serverReports, execute: fetchReports } = useFetch('/api/reports', {
-  immediate: false,
-})
+const { data: serverReports, execute: fetchReports } = useFetch(
+  'https://pack-pendant-conclusions-summary.trycloudflare.com/api/reports/',
+  {
+    immediate: false,
+  },
+)
   .get()
   .json()
 
@@ -46,18 +50,21 @@ async function submitreport() {
     return
   }
   try {
-    const response = await fetch('/api/reports/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      'https://pack-pendant-conclusions-summary.trycloudflare.com/api/reports/',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          latitude: selectedlocation.value.lat,
+          longitude: selectedlocation.value.lng,
+          type: selectedProblemType.value,
+          description: description.value,
+        }),
       },
-      body: JSON.stringify({
-        latitude: selectedlocation.value.lat,
-        longitude: selectedlocation.value.lng,
-        type: selectedProblemType.value,
-        description: description.value,
-      }),
-    })
+    )
 
     if (!response.ok) {
       throw new Error(`Failed to submit report: ${response.status}`)
